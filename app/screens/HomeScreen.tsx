@@ -1,3 +1,4 @@
+import React from 'react';
 import {ConnectionPanel} from '../modules/connection/ConnectionPanel';
 
 const HomeScreen = () => {

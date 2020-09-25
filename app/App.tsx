@@ -1,15 +1,13 @@
 import React from 'react';
-import {SafeAreaView, StyleSheet, StatusBar} from 'react-native';
+import {SafeAreaView, StyleSheet, StatusBar, Text} from 'react-native';
 
 import {Provider} from 'react-redux';
-import {NativeRouter, Route} from 'react-router-native';
+import {NativeRouter, Route, Switch} from 'react-router-native';
 import {ConnectedRouter} from 'connected-react-router';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import store, {routerHistory} from './configureStore';
 import HomeScreen from './screens/HomeScreen';
-
-declare const global: {HermesInternal: null | {}};
 
 const App = () => {
   return (
@@ -19,7 +17,9 @@ const App = () => {
         <Provider store={store}>
           <NativeRouter>
             <ConnectedRouter history={routerHistory}>
-              <Route exact path="/" component={HomeScreen} />
+              <Switch>
+                <Route exact path="/" component={HomeScreen} />
+              </Switch>
             </ConnectedRouter>
           </NativeRouter>
         </Provider>

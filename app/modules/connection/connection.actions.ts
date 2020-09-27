@@ -3,29 +3,86 @@ import {
   RNSerialport,
   definitions,
   actions,
-  IOnServiceStarted,
   IOnError,
-  IOnReadData,
+  IOnServiceStarted,
 } from 'react-native-serialport';
 import {DeviceEventEmitter} from 'react-native';
+import {push} from 'connected-react-router';
+import store from '../../configureStore';
+import { usb } from '../../core';
 
-const handleServiceStarted = (response: IOnServiceStarted) => {};
+const m = {
+  connected: (displayName: string) => ({type: CONNECTION_TYPES.CONNECTED, displayName}),
+  disconnected: () => ({type: CONNECTION_TYPES.DISCONNECTED}),
+  attached: (deviceName: string) => ({
+    type: CONNECTION_TYPES.ATTACHED,
+    deviceName,
+  }),
+  detached: () => ({type: CONNECTION_TYPES.DETACHED}),
+};
 
-const handleServiceStopped = () => {};
+const handleConnected = async () => {
+  console.log('connected');
 
-const handleDeviceAttached = () => {};
+  const { payload } = await usb.sendAndWait('WHOAREYOU');
+  store.dispatch(m.connected(payload));
+  store.dispatch(push('/device'));
+};
 
-const handleDeviceDetached = () => {};
+const handleDisconnected = () => {
+  console.log('disconnected');
 
-const handleConnected = () => {};
+  store.dispatch(m.disconnected());
+  store.dispatch(push('/'));
+};
 
-const handleDisconnected = () => {};
+const handleAttached = async () => {
+  console.log('attached');
 
-const handleError = (error: IOnError) => {};
+  const devices = await RNSerialport.getDeviceList();
+  store.dispatch(m.attached(devices[0].name));
+};
 
-const handleReadData = (data: IOnReadData) => {};
+const handleDetached = () => {
+  console.log('detached');
+  store.dispatch(m.detached());
+};
 
-const detachListeners = async () => {
+const handleServiceStarted = (payload: IOnServiceStarted) => {
+  console.log('Service started');
+
+  if (!payload.deviceAttached) {
+    return;
+  }
+
+  handleAttached();
+};
+
+const handleError = (error: IOnError) => {
+  console.log(error);
+};
+
+const connect = () => async (_, getState) => {
+  const deviceName = getState().connection.deviceName;
+
+  RNSerialport.connectDevice(deviceName, 9600);
+};
+
+const send = (value: string) => {
+  RNSerialport.writeString(value);
+}
+
+const handleData = (data) => {
+  const payload = RNSerialport.hexToUtf16(data.payload);
+  usb.handleData(payload);
+}
+
+export const connectionActions = {
+  connect,
+  send,
+};
+
+export const stopUsbService = async () => {
   DeviceEventEmitter.removeAllListeners();
   if (await RNSerialport.isOpen()) {
     RNSerialport.disconnect();
@@ -33,37 +90,24 @@ const detachListeners = async () => {
   RNSerialport.stopUsbService();
 };
 
-const stopUsbService = () => {
-  DeviceEventEmitter.addListener(
-    actions.ON_SERVICE_STARTED,
-    handleServiceStarted,
-  );
+export const startUsbService = () => {
+  console.log('Attempt to start usb service');
 
-  DeviceEventEmitter.addListener(
-    actions.ON_SERVICE_STOPPED,
-    handleServiceStopped,
-  );
-
-  DeviceEventEmitter.addListener(
-    actions.ON_DEVICE_ATTACHED,
-    handleDeviceAttached,
-  );
-  DeviceEventEmitter.addListener(
-    actions.ON_DEVICE_DETACHED,
-    handleDeviceDetached,
-  );
   DeviceEventEmitter.addListener(actions.ON_ERROR, handleError);
   DeviceEventEmitter.addListener(actions.ON_CONNECTED, handleConnected);
   DeviceEventEmitter.addListener(actions.ON_DISCONNECTED, handleDisconnected);
-  DeviceEventEmitter.addListener(actions.ON_READ_DATA, handleReadData);
-};
+  DeviceEventEmitter.addListener(
+    actions.ON_SERVICE_STARTED,
+    handleServiceStarted,
+    this,
+  );
+  DeviceEventEmitter.addListener(actions.ON_DEVICE_ATTACHED, handleAttached);
+  DeviceEventEmitter.addListener(actions.ON_DEVICE_DETACHED, handleDetached);
+  DeviceEventEmitter.addListener(actions.ON_READ_DATA, handleData);
 
-const startUsbService = () => {
-  RNSerialport.setInterface(-1);
   RNSerialport.setReturnedDataType(
     definitions.RETURNED_DATA_TYPES.HEXSTRING as any,
   );
-  RNSerialport.setAutoConnectBaudRate(9600);
-  RNSerialport.setAutoConnect(true);
+  RNSerialport.setAutoConnect(false);
   RNSerialport.startUsbService();
 };

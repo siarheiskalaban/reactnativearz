@@ -2,7 +2,6 @@ import React, {PropsWithChildren} from 'react';
 import {View, StyleSheet} from 'react-native';
 import reactUtil from '../../utils/reactUtil';
 import {PageHeader, PageHeaderProps} from './PageHeader';
-import {Container, Content, Text} from 'native-base';
 
 type PageProps = PropsWithChildren<{}>;
 
@@ -22,13 +21,10 @@ class _Page extends React.Component {
       reactUtil.delegateProps(PageBodyDelegate, this.props.children) || {};
 
     return (
-      <Container>
+      <View style={styles.container}>
         <PageHeader {...pageHeaderProps} />
-        <Content>
-          <Text>Blah blah</Text>
-          {/* <View>{pageBodyProps.children}</View> */}
-        </Content>
-      </Container>
+        <View style={styles.body}>{pageBodyProps.children}</View>
+      </View>
     );
   }
 }
@@ -36,7 +32,12 @@ class _Page extends React.Component {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
+    height: "100%"
   },
+  body: {
+    display: "flex",
+    flexGrow: 1
+  }
 });
 
 const AnyPage: any = _Page;

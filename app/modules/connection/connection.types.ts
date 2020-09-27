@@ -1,6 +1,6 @@
 export const CONNECTION_TYPES = Object.freeze({
-  SERVICE_STARTED: 'connection://SERVICE_STARTED',
-  SERVICE_STOPPED: 'connection://SERVICE_STOPPED',
+  ATTACHED: 'connection://ATTACHED',
+  DETACHED: 'connection://DETACHED',
   CONNECTED: 'connection://CONNECTED',
-  DISCONNECTED: 'connection://DISCONNECTED'
-}) 
+  DISCONNECTED: 'connection://DISCONNECTED',
+});

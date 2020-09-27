@@ -9,10 +9,13 @@ import {
 import {DeviceEventEmitter} from 'react-native';
 import {push} from 'connected-react-router';
 import store from '../../configureStore';
-import { usb } from '../../core';
+import {usb} from '../../core';
 
 const m = {
-  connected: (displayName: string) => ({type: CONNECTION_TYPES.CONNECTED, displayName}),
+  connected: (displayName: string) => ({
+    type: CONNECTION_TYPES.CONNECTED,
+    displayName,
+  }),
   disconnected: () => ({type: CONNECTION_TYPES.DISCONNECTED}),
   attached: (deviceName: string) => ({
     type: CONNECTION_TYPES.ATTACHED,
@@ -24,7 +27,9 @@ const m = {
 const handleConnected = async () => {
   console.log('connected');
 
-  const { payload } = await usb.sendAndWait('WHOAREYOU');
+  await usb.warmup();
+  console.log('SEND WHO YOU ARE?');
+  const {payload} = await usb.sendAndWait('WHOAREYOU');
   store.dispatch(m.connected(payload));
   store.dispatch(push('/device'));
 };
@@ -70,12 +75,12 @@ const connect = () => async (_, getState) => {
 
 const send = (value: string) => {
   RNSerialport.writeString(value);
-}
+};
 
 const handleData = (data) => {
   const payload = RNSerialport.hexToUtf16(data.payload);
   usb.handleData(payload);
-}
+};
 
 export const connectionActions = {
   connect,

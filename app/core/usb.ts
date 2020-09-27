@@ -47,8 +47,9 @@ class Usb {
 
     const found = this._dataRegEx.exec(this._chunk);
 
+    console.log("CHUNK: " + this._chunk);
+
     if (found) {
-      debugger;
       this.processData(found);
       const index = this._chunk.indexOf(found[0]);
       this._chunk = this._chunk.substring(index + found[0].length);
@@ -62,6 +63,8 @@ class Usb {
       payload: payload === '' ? null : payload,
     };
 
+    console.log('received', response);
+
     this._subscribers.forEach((subscriber) => subscriber(response));
 
     if (!this._resolvers.has(id)) {
@@ -72,6 +75,33 @@ class Usb {
     resolver(response);
   };
 
+  public warmup = () => {
+    console.log('Warmup called');
+
+    return new Promise((resolve) => {
+      const id = shortid();
+      let finished = false;
+
+      const subscription = this.subscribeKind("STATUS", () => {
+        finished = true;
+        resolve();
+        subscription.dispose();
+      })
+
+      const tick = () => {
+        console.log(`Finished = ${finished}`);
+
+        if (finished) return;
+
+        console.log('Sending warmup!');
+        RNSerialport.writeString(this.serialize(id, "STATUS"));
+        setTimeout(() => tick(), 2500);
+      }
+      
+      setTimeout(() => tick(), 0);
+    });
+  }
+
   public sendAndWait = (
     kind: string,
     payload?: string,
@@ -80,7 +110,8 @@ class Usb {
 
     return new Promise((resolve) => {
       this._resolvers.set(id, resolve);
-      RNSerialport.writeString(this.serialize(id, kind, payload));
+
+      setTimeout(() => RNSerialport.writeString(this.serialize(id, kind, payload)), 0);
     });
   };
 

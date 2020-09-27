@@ -1,5 +1,6 @@
 export const CONNECTION_TYPES = Object.freeze({
-  SEARCH_PENDING: 'search://pending',
-  SEARCH_DECLINED: 'search://declined',
-  SEARCH_ACCEPTED: 'search://accepted'
+  SERVICE_STARTED: 'connection://SERVICE_STARTED',
+  SERVICE_STOPPED: 'connection://SERVICE_STOPPED',
+  CONNECTED: 'connection://CONNECTED',
+  DISCONNECTED: 'connection://DISCONNECTED'
 }) 

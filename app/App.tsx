@@ -5,7 +5,6 @@ import {Provider} from 'react-redux';
 import {NativeRouter, Route, Switch} from 'react-router-native';
 import {ConnectedRouter} from 'connected-react-router';
 
-import {Colors} from 'react-native/Libraries/NewAppScreen';
 import store, {routerHistory} from './configureStore';
 import HomeScreen from './screens/HomeScreen';
 
@@ -14,6 +13,7 @@ import {
   stopUsbService,
 } from './modules/connection/connection.actions';
 import DeviceScreen from './screens/DeviceScreen';
+import { ArduinoKitScreen } from './screens/ArduinoKitScreen';
 
 class App extends React.Component {
   public componentDidMount() {
@@ -33,7 +33,8 @@ class App extends React.Component {
             <NativeRouter>
               <ConnectedRouter history={routerHistory}>
                 <Switch>
-                  <Route exact path="/" component={HomeScreen} />
+                  <Route exact path="/" component={ArduinoKitScreen} />
+                  <Route path="/old" component={HomeScreen} />
                   <Route path="/device" component={DeviceScreen} />
                 </Switch>
               </ConnectedRouter>
